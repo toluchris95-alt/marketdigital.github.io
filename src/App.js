@@ -1,5 +1,8 @@
+// src/App.js
+
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// The only change is on this line:
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
@@ -21,6 +24,7 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <CartProvider>
+          {/* This <Router> tag correctly uses the HashRouter nickname from the import */}
           <Router>
             <div className="dark:bg-gray-900 min-h-screen">
               <Navbar />
