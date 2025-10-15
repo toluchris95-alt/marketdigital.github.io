@@ -1,36 +1,87 @@
-import React, { useEffect, useState } from "react";
-import SplashScreen from "./components/SplashScreen";
+import React, { useState } from "react";
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { CartProvider } from "./context/CartContext";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
-
-  useEffect(() => {
-    const fadeTimer = setTimeout(() => setFadeOut(true), 1500);
-    const removeTimer = setTimeout(() => setShowSplash(false), 2500);
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(removeTimer);
-    };
-  }, []);
-
-  if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
+  const [stage, setStage] = useState("base");
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom right, #001F3F, #0074D9)",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "24px",
-      }}
-    >
-      <p>✅ React is running and Splash unmounted</p>
-      <p>Now rendering plain App.js</p>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
+      {stage === "base" && (
+        <div>
+          <p>🧩 Testing providers step-by-step...</p>
+          <button
+            onClick={() => setStage("auth")}
+            className="mt-3 px-4 py-2 bg-blue-500 rounded"
+          >
+            Next ➜ Add AuthProvider
+          </button>
+        </div>
+      )}
+
+      {stage === "auth" && (
+        <AuthProvider>
+          <div className="text-center">
+            <p>✅ AuthProvider Loaded Successfully</p>
+            <button
+              onClick={() => setStage("theme")}
+              className="mt-3 px-4 py-2 bg-blue-500 rounded"
+            >
+              Next ➜ Add ThemeProvider
+            </button>
+          </div>
+        </AuthProvider>
+      )}
+
+      {stage === "theme" && (
+        <AuthProvider>
+          <ThemeProvider>
+            <div className="text-center">
+              <p>✅ ThemeProvider Loaded Successfully</p>
+              <button
+                onClick={() => setStage("cart")}
+                className="mt-3 px-4 py-2 bg-blue-500 rounded"
+              >
+                Next ➜ Add CartProvider
+              </button>
+            </div>
+          </ThemeProvider>
+        </AuthProvider>
+      )}
+
+      {stage === "cart" && (
+        <AuthProvider>
+          <ThemeProvider>
+            <CartProvider>
+              <div className="text-center">
+                <p>✅ CartProvider Loaded Successfully</p>
+                <button
+                  onClick={() => setStage("home")}
+                  className="mt-3 px-4 py-2 bg-blue-500 rounded"
+                >
+                  Next ➜ Load Home Page
+                </button>
+              </div>
+            </CartProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      )}
+
+      {stage === "home" && (
+        <AuthProvider>
+          <ThemeProvider>
+            <CartProvider>
+              <div className="w-full flex flex-col items-center">
+                <Navbar />
+                <Home />
+              </div>
+            </CartProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      )}
     </div>
   );
 }
