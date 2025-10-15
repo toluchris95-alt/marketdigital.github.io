@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import { CartProvider } from "./context/CartContext";
-
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SplashScreen from "./components/SplashScreen";
-import ErrorBoundary from "./components/ErrorBoundary";
+
+// --- Contexts (wrapped with try/catch below) ---
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { CartProvider } from "./context/CartContext";
 
 // --- Pages ---
 import Home from "./pages/Home";
@@ -21,56 +21,46 @@ import CartPage from "./pages/CartPage";
 import MessagesPage from "./pages/MessagesPage";
 import AdminKYCPanel from "./pages/AdminKYCPanel";
 
-function App() {
+// Simple inline ErrorBoundary to expose crashes
+function SafeBoundary({ children }) {
+  const [error, setError] = useState(null);
+  if (error)
+    return (
+      <div className="bg-red-900 text-white p-6 text-center">
+        <h2 className="text-xl font-bold mb-2">❌ Application Crash</h2>
+        <p>{error.message || "Unknown error"}</p>
+        <pre className="text-sm mt-4 bg-black/30 p-2 rounded">
+          {error.stack}
+        </pre>
+      </div>
+    );
+
+  try {
+    return children;
+  } catch (e) {
+    setError(e);
+    return null;
+  }
+}
+
+export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // 🌀 Splash logic
   useEffect(() => {
-    console.log("✅ Splash mounted");
-    const fadeTimer = setTimeout(() => {
-      setFadeOut(true);
-      console.log("➡️ Splash fading out");
-    }, 2000);
-
-    const removeTimer = setTimeout(() => {
-      setShowSplash(false);
-      console.log("🧹 Splash removed — main app should now render");
-    }, 3000);
-
+    const fadeTimer = setTimeout(() => setFadeOut(true), 1500);
+    const removeTimer = setTimeout(() => setShowSplash(false), 2500);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(removeTimer);
     };
   }, []);
 
-  // 🌀 Show splash first
-  if (showSplash) {
-    return (
-      <div>
-        <SplashScreen fadeOut={fadeOut} />
-        <p
-          style={{
-            color: "white",
-            textAlign: "center",
-            marginTop: "20px",
-            fontSize: "14px",
-          }}
-        >
-          Splash Screen Mounted ✅
-          <br />
-          (If you see this forever, React never unmounted it)
-        </p>
-      </div>
-    );
-  }
-
-  // 🚀 Main App after splash
-  console.log("🚀 Rendering main app");
+  if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
 
   return (
-    <React.StrictMode>
-      <ErrorBoundary>
+    <SafeBoundary>
+      <React.StrictMode>
         <AuthProvider>
           <ThemeProvider>
             <CartProvider>
@@ -81,7 +71,6 @@ function App() {
                     <h2 className="text-xl mb-4">🟢 React Router Active</h2>
 
                     <Routes>
-                      {/* --- Public Routes --- */}
                       <Route path="/" element={<Home />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/login" element={<Login />} />
@@ -89,8 +78,6 @@ function App() {
                         path="/product/:productId"
                         element={<ProductDetail />}
                       />
-
-                      {/* --- Protected Routes --- */}
                       <Route
                         path="/profile"
                         element={
@@ -147,8 +134,6 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-
-                      {/* --- Fallback --- */}
                       <Route path="*" element={<Home />} />
                     </Routes>
                   </main>
@@ -157,9 +142,7 @@ function App() {
             </CartProvider>
           </ThemeProvider>
         </AuthProvider>
-      </ErrorBoundary>
-    </React.StrictMode>
+      </React.StrictMode>
+    </SafeBoundary>
   );
 }
-
-export default App;
