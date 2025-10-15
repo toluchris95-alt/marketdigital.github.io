@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SplashScreen from "./components/SplashScreen";
 
-// --- Contexts (wrapped with try/catch below) ---
+// --- Contexts ---
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { CartProvider } from "./context/CartContext";
@@ -21,10 +21,11 @@ import CartPage from "./pages/CartPage";
 import MessagesPage from "./pages/MessagesPage";
 import AdminKYCPanel from "./pages/AdminKYCPanel";
 
-// Simple inline ErrorBoundary to expose crashes
+// --- Fallback Error Boundary (simple runtime catcher) ---
 function SafeBoundary({ children }) {
   const [error, setError] = useState(null);
-  if (error)
+
+  if (error) {
     return (
       <div className="bg-red-900 text-white p-6 text-center">
         <h2 className="text-xl font-bold mb-2">❌ Application Crash</h2>
@@ -34,6 +35,7 @@ function SafeBoundary({ children }) {
         </pre>
       </div>
     );
+  }
 
   try {
     return children;
@@ -47,6 +49,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
+  // 🌀 Splash logic
   useEffect(() => {
     const fadeTimer = setTimeout(() => setFadeOut(true), 1500);
     const removeTimer = setTimeout(() => setShowSplash(false), 2500);
@@ -56,28 +59,31 @@ export default function App() {
     };
   }, []);
 
+  // 🌀 Show splash screen first
   if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
 
+  // 🚀 Main app after splash
   return (
     <SafeBoundary>
       <React.StrictMode>
         <AuthProvider>
           <ThemeProvider>
             <CartProvider>
-              <HashRouter>
+              {/* ✅ basename ensures proper path on GitHub Pages */}
+              <HashRouter basename="/marketdigital.github.io">
                 <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
                   <Navbar />
                   <main className="container mx-auto px-4 py-8 flex-1 text-center">
                     <h2 className="text-xl mb-4">🟢 React Router Active</h2>
 
                     <Routes>
+                      {/* --- Public Routes --- */}
                       <Route path="/" element={<Home />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/login" element={<Login />} />
-                      <Route
-                        path="/product/:productId"
-                        element={<ProductDetail />}
-                      />
+                      <Route path="/product/:productId" element={<ProductDetail />} />
+
+                      {/* --- Protected Routes --- */}
                       <Route
                         path="/profile"
                         element={
@@ -134,6 +140,8 @@ export default function App() {
                           </ProtectedRoute>
                         }
                       />
+
+                      {/* --- Fallback --- */}
                       <Route path="*" element={<Home />} />
                     </Routes>
                   </main>
