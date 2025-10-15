@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { CartProvider } from "./context/CartContext";
@@ -24,7 +24,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // ✅ Splash sequence (fade → remove)
+  // Splash logic
   useEffect(() => {
     const fadeTimer = setTimeout(() => setFadeOut(true), 2500);
     const removeTimer = setTimeout(() => setShowSplash(false), 3500);
@@ -34,26 +34,24 @@ function App() {
     };
   }, []);
 
-  if (showSplash) {
-    return <SplashScreen fadeOut={fadeOut} />;
-  }
+  if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
 
   return (
     <AuthProvider>
       <ThemeProvider>
         <CartProvider>
-          <Router>
-            <div className="dark:bg-gray-900 min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
+          <HashRouter>
+            <div className="min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
               <Navbar />
               <main className="container mx-auto px-4 py-8 flex-1">
                 <Routes>
-                  {/* Public */}
+                  {/* --- Public Routes --- */}
                   <Route path="/" element={<Home />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/product/:productId" element={<ProductDetail />} />
 
-                  {/* Protected */}
+                  {/* --- Protected Routes --- */}
                   <Route
                     path="/profile"
                     element={
@@ -87,7 +85,7 @@ function App() {
                     }
                   />
 
-                  {/* Messages */}
+                  {/* --- Messages --- */}
                   <Route
                     path="/messages"
                     element={
@@ -105,7 +103,7 @@ function App() {
                     }
                   />
 
-                  {/* Admin */}
+                  {/* --- Admin --- */}
                   <Route
                     path="/admin/kyc"
                     element={
@@ -115,12 +113,12 @@ function App() {
                     }
                   />
 
-                  {/* ✅ Fallback to Home to prevent blank screen */}
+                  {/* --- ✅ Fallback route to prevent blank screen --- */}
                   <Route path="*" element={<Home />} />
                 </Routes>
               </main>
             </div>
-          </Router>
+          </HashRouter>
         </CartProvider>
       </ThemeProvider>
     </AuthProvider>
