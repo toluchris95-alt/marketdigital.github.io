@@ -1,25 +1,23 @@
-// src/components/SplashScreen.jsx
-import React from "react";
-
-export default function SplashScreen({ fadeOut }) {
+function App() {
   return (
-    <div
-      className={`fixed inset-0 flex items-center justify-center text-white z-50 transition-opacity duration-700 ${
-        fadeOut ? "opacity-0" : "opacity-100"
-      } bg-gray-900`}
-    >
-      <div className="text-center animate-fadeIn">
-        {/* Spinner */}
-        <div className="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
-
-        {/* Title */}
-        <h1 className="text-4xl font-extrabold tracking-wide mb-2">
-          Digital Asset Marketplace
-        </h1>
-
-        {/* Tagline */}
-        <p className="text-gray-400 text-lg">Loading your experience...</p>
-      </div>
-    </div>
+    <AuthProvider>
+      <ThemeProvider>
+        <CartProvider>
+          <HashRouter>
+            <div className="min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
+              <div style={{ textAlign: "center", marginTop: 50 }}>
+                ⚡ App Mounted — Splash removed for test
+              </div>
+              <Navbar />
+              <main className="container mx-auto px-4 py-8 flex-1">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                </Routes>
+              </main>
+            </div>
+          </HashRouter>
+        </CartProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
