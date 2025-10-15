@@ -1,8 +1,16 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
+// ✅ Your actual Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBV2GUGOfYBxjbAHjYaYwSyrCQP5ik0k0s",
   authDomain: "digital-marketplace-4a9a6.firebaseapp.com",
@@ -13,7 +21,32 @@ const firebaseConfig = {
   measurementId: "G-RR6Q1Q8L9B"
 };
 
-// Initialize Firebase
+// ✅ Initialize
 const app = initializeApp(firebaseConfig);
+
+// ✅ Auth
 export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence);
+export const googleProvider = new GoogleAuthProvider();
+
+// ✅ Firestore
 export const db = getFirestore(app);
+
+// ✅ Storage (for uploaded profile pictures)
+export const storage = getStorage(app);
+
+// ✅ Phone auth helpers
+let recaptchaVerifier;
+export const getRecaptchaVerifier = (containerId = "recaptcha-container") => {
+  if (!recaptchaVerifier) {
+    recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: "invisible", // "normal" if you want visible widget
+    });
+  }
+  return recaptchaVerifier;
+};
+
+export const sendLoginCode = async (phoneNumber, containerId = "recaptcha-container") => {
+  const verifier = getRecaptchaVerifier(containerId);
+  return await signInWithPhoneNumber(auth, phoneNumber, verifier);
+};
