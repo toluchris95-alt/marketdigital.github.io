@@ -24,18 +24,49 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // ✅ Splash animation + unmount
+  // ✅ Splash logic with debug logging
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setFadeOut(true), 2000); // start fade
-    const removeTimer = setTimeout(() => setShowSplash(false), 3000); // remove completely
+    console.log("✅ Splash mounted");
+    const fadeTimer = setTimeout(() => {
+      setFadeOut(true);
+      console.log("➡️ Splash fading out");
+    }, 2000);
+
+    const removeTimer = setTimeout(() => {
+      setShowSplash(false);
+      console.log("🧹 Splash removed — main app should now render");
+    }, 3000);
+
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(removeTimer);
     };
   }, []);
 
-  // ✅ Show splash first
-  if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
+  // ✅ While splash is showing
+  if (showSplash) {
+    console.log("⏳ Rendering Splash...");
+    return (
+      <div>
+        <SplashScreen fadeOut={fadeOut} />
+        <p
+          style={{
+            color: "white",
+            textAlign: "center",
+            marginTop: "20px",
+            fontSize: "14px",
+          }}
+        >
+          Splash Screen Mounted ✅
+          <br />
+          (If you see this forever, React never unmounted it)
+        </p>
+      </div>
+    );
+  }
+
+  // ✅ Main App after splash
+  console.log("🚀 Rendering main app");
 
   return (
     <AuthProvider>
@@ -44,7 +75,9 @@ function App() {
           <HashRouter>
             <div className="min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
               <Navbar />
-              <main className="container mx-auto px-4 py-8 flex-1">
+              <main className="container mx-auto px-4 py-8 flex-1 text-center">
+                <h2 className="text-white text-xl mb-4">🟢 React Router Active</h2>
+
                 <Routes>
                   {/* --- Public Routes --- */}
                   <Route path="/" element={<Home />} />
