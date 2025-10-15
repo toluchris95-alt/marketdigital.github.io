@@ -26,7 +26,7 @@ body {
   animation: fadeIn 1s ease-in-out;
 }
 
-/* (Optional) Fade-out animation for smoother splash removal */
+/* ✨ Fade-out animation for smoother splash removal */
 @keyframes fadeOut {
   from {
     opacity: 1;
@@ -38,4 +38,9 @@ body {
 
 .animate-fadeOut {
   animation: fadeOut 1s ease-in-out forwards;
+}
+
+/* 🌚 Default background — ensures no white flash during load */
+body {
+  @apply bg-gray-900 text-gray-100 transition-colors duration-300;
 }
