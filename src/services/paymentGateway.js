@@ -7,5 +7,5 @@ export async function initiateTopUp({ uid, amount, email, method }) {
     body: JSON.stringify({ uid, amount, email, method })
   });
   if (!r.ok) throw new Error("Failed to initiate payment");
-  return r.json(); // { link, reference }
+  return r.json(); // { link, reference, provider }
 }
