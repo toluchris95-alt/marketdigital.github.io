@@ -1,3 +1,4 @@
+// src/services/firebase.js
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -21,7 +22,7 @@ const firebaseConfig = {
   measurementId: "G-RR6Q1Q8L9B"
 };
 
-// ✅ Initialize
+// ✅ Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 // ✅ Auth
@@ -32,15 +33,15 @@ export const googleProvider = new GoogleAuthProvider();
 // ✅ Firestore
 export const db = getFirestore(app);
 
-// ✅ Storage (for uploaded profile pictures)
+// ✅ Storage (for uploaded files)
 export const storage = getStorage(app);
 
-// ✅ Phone auth helpers
+// ✅ Phone Auth helpers
 let recaptchaVerifier;
 export const getRecaptchaVerifier = (containerId = "recaptcha-container") => {
   if (!recaptchaVerifier) {
     recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      size: "invisible", // "normal" if you want visible widget
+      size: "invisible",
     });
   }
   return recaptchaVerifier;
@@ -50,3 +51,5 @@ export const sendLoginCode = async (phoneNumber, containerId = "recaptcha-contai
   const verifier = getRecaptchaVerifier(containerId);
   return await signInWithPhoneNumber(auth, phoneNumber, verifier);
 };
+
+export default app;
