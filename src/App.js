@@ -1,51 +1,58 @@
 // src/App.js
-import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 
-// --- Context Providers ---
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { CartProvider } from './context/CartContext';
+// --- Contexts ---
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { CartProvider } from "./context/CartContext";
 
 // --- Components ---
-import Navbar from './components/Navbar';
-import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import SplashScreen from "./components/SplashScreen"; // ✅ NEW
 
 // --- Pages ---
-import Home from './pages/Home';
-import ProductDetail from './pages/ProductDetail';
-import SignUp from './pages/SignUp';
-import Login from './pages/Login';
-import SellerDashboard from './pages/SellerDashboard';
-import OrderHistory from './pages/OrderHistory';
-import ProfilePage from './pages/ProfilePage';
-import CartPage from './pages/CartPage';
-import MessagesPage from './pages/MessagesPage';
-import AdminKYCPanel from './pages/AdminKYCPanel'; // ✅ NEW import (Admin panel)
-
-// -----------------------------------------------------
+import Home from "./pages/Home";
+import ProductDetail from "./pages/ProductDetail";
+import SignUp from "./pages/SignUp";
+import Login from "./pages/Login";
+import SellerDashboard from "./pages/SellerDashboard";
+import OrderHistory from "./pages/OrderHistory";
+import ProfilePage from "./pages/ProfilePage";
+import CartPage from "./pages/CartPage";
+import MessagesPage from "./pages/MessagesPage";
+import AdminKYCPanel from "./pages/AdminKYCPanel"; // ✅ Admin page
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Hide splash after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
   return (
     <AuthProvider>
       <ThemeProvider>
         <CartProvider>
           <Router>
             <div className="dark:bg-gray-900 min-h-screen flex flex-col">
-              {/* --- Navbar --- */}
               <Navbar />
-
-              {/* --- Main content area --- */}
               <main className="container mx-auto px-4 py-8 flex-1">
                 <Routes>
-
-                  {/* ---------- PUBLIC ROUTES ---------- */}
+                  {/* Public Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/product/:productId" element={<ProductDetail />} />
 
-                  {/* ---------- PROTECTED ROUTES ---------- */}
+                  {/* Protected Routes */}
                   <Route
                     path="/profile"
                     element={
@@ -54,7 +61,6 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-
                   <Route
                     path="/orders"
                     element={
@@ -63,26 +69,24 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-
                   <Route
                     path="/cart"
                     element={
-                      <ProtectedRoute roles={['Buyer']}>
+                      <ProtectedRoute roles={["Buyer"]}>
                         <CartPage />
                       </ProtectedRoute>
                     }
                   />
-
                   <Route
                     path="/dashboard"
                     element={
-                      <ProtectedRoute roles={['Seller']}>
+                      <ProtectedRoute roles={["Seller"]}>
                         <SellerDashboard />
                       </ProtectedRoute>
                     }
                   />
 
-                  {/* ---------- MESSAGES ROUTES ---------- */}
+                  {/* Messaging */}
                   <Route
                     path="/messages"
                     element={
@@ -100,16 +104,15 @@ function App() {
                     }
                   />
 
-                  {/* ---------- ADMIN ROUTES ---------- */}
+                  {/* Admin */}
                   <Route
                     path="/admin/kyc"
                     element={
-                      <ProtectedRoute roles={['Admin']}>
+                      <ProtectedRoute roles={["Admin"]}>
                         <AdminKYCPanel />
                       </ProtectedRoute>
                     }
                   />
-
                 </Routes>
               </main>
             </div>
