@@ -1,5 +1,5 @@
 // src/services/firebase.js
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -11,7 +11,10 @@ import {
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// ✅ Your actual Firebase config
+/**
+ * 🔥 Firebase Configuration
+ * (Uses your real project keys — safe for client-side)
+ */
 const firebaseConfig = {
   apiKey: "AIzaSyBV2GUGOfYBxjbAHjYaYwSyrCQP5ik0k0s",
   authDomain: "digital-marketplace-4a9a6.firebaseapp.com",
@@ -19,37 +22,69 @@ const firebaseConfig = {
   storageBucket: "digital-marketplace-4a9a6.appspot.com",
   messagingSenderId: "267883417599",
   appId: "1:267883417599:web:f9bd92517a48dc1dcde1ca",
-  measurementId: "G-RR6Q1Q8L9B"
+  measurementId: "G-RR6Q1Q8L9B",
 };
 
-// ✅ Initialize Firebase
-const app = initializeApp(firebaseConfig);
+/**
+ * 🧩 Safe Initialization (prevents duplicate app errors on GH Pages)
+ */
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+  console.log("✅ Firebase initialized");
+} else {
+  app = getApp();
+  console.log("ℹ️ Using existing Firebase app instance");
+}
 
-// ✅ Auth
+/**
+ * 🔐 Auth Setup
+ */
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence);
+try {
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => console.log("🔒 Auth persistence set to local"))
+    .catch((err) => console.warn("⚠️ Persistence warning:", err.message));
+} catch (err) {
+  console.warn("⚠️ Persistence not supported in this environment:", err.message);
+}
+
 export const googleProvider = new GoogleAuthProvider();
 
-// ✅ Firestore
+/**
+ * 💾 Firestore + Storage
+ */
 export const db = getFirestore(app);
-
-// ✅ Storage (for uploaded files)
 export const storage = getStorage(app);
 
-// ✅ Phone Auth helpers
-let recaptchaVerifier;
+/**
+ * 📱 Phone Auth Helper
+ */
+let recaptchaVerifier = null;
+
 export const getRecaptchaVerifier = (containerId = "recaptcha-container") => {
-  if (!recaptchaVerifier) {
-    recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      size: "invisible",
-    });
+  try {
+    if (!recaptchaVerifier) {
+      recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+        size: "invisible",
+      });
+      console.log("✅ RecaptchaVerifier initialized");
+    }
+    return recaptchaVerifier;
+  } catch (err) {
+    console.error("❌ RecaptchaVerifier error:", err);
+    return null;
   }
-  return recaptchaVerifier;
 };
 
 export const sendLoginCode = async (phoneNumber, containerId = "recaptcha-container") => {
-  const verifier = getRecaptchaVerifier(containerId);
-  return await signInWithPhoneNumber(auth, phoneNumber, verifier);
+  try {
+    const verifier = getRecaptchaVerifier(containerId);
+    return await signInWithPhoneNumber(auth, phoneNumber, verifier);
+  } catch (err) {
+    console.error("❌ sendLoginCode error:", err);
+    throw err;
+  }
 };
 
 export default app;
