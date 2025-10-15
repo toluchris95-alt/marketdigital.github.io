@@ -7,7 +7,7 @@ import { CartProvider } from "./context/CartContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SplashScreen from "./components/SplashScreen";
-import ErrorBoundary from "./components/ErrorBoundary"; // ✅ Added
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // --- Pages ---
 import Home from "./pages/Home";
@@ -25,9 +25,10 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // ✅ Splash logic with debug logging
+  // 🌀 Splash logic with debug logs
   useEffect(() => {
     console.log("✅ Splash mounted");
+
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
       console.log("➡️ Splash fading out");
@@ -44,7 +45,7 @@ function App() {
     };
   }, []);
 
-  // ✅ While splash is showing
+  // 🌀 While splash is visible
   if (showSplash) {
     console.log("⏳ Rendering Splash...");
     return (
@@ -66,7 +67,7 @@ function App() {
     );
   }
 
-  // ✅ Main App after splash
+  // 🚀 Main app after splash
   console.log("🚀 Rendering main app");
 
   return (
