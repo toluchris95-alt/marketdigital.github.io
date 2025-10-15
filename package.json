@@ -2,17 +2,20 @@
   "name": "digital-asset-marketplace",
   "version": "1.0.0",
   "private": true,
-  "description": "A modern digital asset marketplace built with React, Firebase, TailwindCSS, and Express for Render or Railway deployment.",
+  "description": "A modern digital asset marketplace built with React, Firebase, and TailwindCSS — ready for Render or Railway deployment.",
   "author": "Toluchris95-alt",
   "license": "MIT",
   "homepage": "https://toluchris95-alt.github.io/marketdigital.github.io/",
 
   "scripts": {
+    "postinstall": "npm install react-scripts",
     "start": "node server.js",
     "build": "react-scripts build",
     "dev": "react-scripts start",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
 
   "dependencies": {
@@ -50,6 +53,7 @@
   },
 
   "engines": {
-    "node": ">=18.x"
+    "node": "18.x",
+    "npm": "9.x"
   }
 }
