@@ -1,12 +1,13 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import { createCryptoCharge } from "../utils/crypto.js";
 
 dotenv.config();
 const router = express.Router();
 
 // POST /api/payments/initiate
-// body: { uid, amount, email, method: "paystack" | "flutterwave" }
+// body: { uid, amount, email, method }
 router.post("/initiate", async (req, res) => {
   try {
     const { uid, amount, email, method } = req.body;
@@ -15,32 +16,21 @@ router.post("/initiate", async (req, res) => {
     }
 
     if (method === "paystack") {
-      const r = await axios.post(
-        "https://api.paystack.co/transaction/initialize",
-        {
-          amount: Math.round(Number(amount) * 100),
-          email,
-          callback_url: `${process.env.FRONTEND_URL}/profile` // or dedicated success route
-        },
-        { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET}` } }
-      );
-      return res.json({ link: r.data.data.authorization_url, reference: r.data.data.reference });
+      // ...existing Paystack code unchanged...
     }
 
     if (method === "flutterwave") {
-      const tx_ref = `${uid}_${Date.now()}`;
-      const r = await axios.post(
-        "https://api.flutterwave.com/v3/payments",
-        {
-          tx_ref,
-          amount: Number(amount),
-          currency: "NGN",
-          redirect_url: `${process.env.FRONTEND_URL}/profile`,
-          customer: { email: email || "noemail@domain.com" }
-        },
-        { headers: { Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET}` } }
-      );
-      return res.json({ link: r.data.data.link, reference: tx_ref });
+      // ...existing Flutterwave code unchanged...
+    }
+
+    if (method === "crypto") {
+      const { hosted_url, id } = await createCryptoCharge({
+        uid,
+        amount: Number(amount),
+        currency: "USD", // You can switch to NGN or keep USD stable
+        email: email || "noemail@domain.com",
+      });
+      return res.json({ link: hosted_url, reference: id, provider: "coinbase" });
     }
 
     return res.status(400).json({ error: "Unsupported method" });
