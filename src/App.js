@@ -1,18 +1,15 @@
 // src/App.js
 import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-
-// --- Contexts ---
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { CartProvider } from "./context/CartContext";
 
-// --- Components ---
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SplashScreen from "./components/SplashScreen"; // ✅ NEW
+import SplashScreen from "./components/SplashScreen";
 
-// --- Pages ---
+// Pages
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
 import SignUp from "./pages/SignUp";
@@ -22,19 +19,23 @@ import OrderHistory from "./pages/OrderHistory";
 import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/CartPage";
 import MessagesPage from "./pages/MessagesPage";
-import AdminKYCPanel from "./pages/AdminKYCPanel"; // ✅ Admin page
+import AdminKYCPanel from "./pages/AdminKYCPanel";
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
 
-  // Hide splash after 2 seconds
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2000);
-    return () => clearTimeout(timer);
+    const fadeTimer = setTimeout(() => setFadeOut(true), 1500);
+    const removeTimer = setTimeout(() => setShowSplash(false), 2300);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(removeTimer);
+    };
   }, []);
 
   if (showSplash) {
-    return <SplashScreen />;
+    return <SplashScreen fadeOut={fadeOut} />;
   }
 
   return (
@@ -42,17 +43,17 @@ function App() {
       <ThemeProvider>
         <CartProvider>
           <Router>
-            <div className="dark:bg-gray-900 min-h-screen flex flex-col">
+            <div className="dark:bg-gray-900 min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
               <Navbar />
               <main className="container mx-auto px-4 py-8 flex-1">
                 <Routes>
-                  {/* Public Routes */}
+                  {/* Public */}
                   <Route path="/" element={<Home />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/product/:productId" element={<ProductDetail />} />
 
-                  {/* Protected Routes */}
+                  {/* Protected */}
                   <Route
                     path="/profile"
                     element={
@@ -86,7 +87,7 @@ function App() {
                     }
                   />
 
-                  {/* Messaging */}
+                  {/* Messages */}
                   <Route
                     path="/messages"
                     element={
