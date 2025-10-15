@@ -8,7 +8,7 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SplashScreen from "./components/SplashScreen";
 
-// Pages
+// --- Pages ---
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
 import SignUp from "./pages/SignUp";
@@ -24,16 +24,17 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // Splash logic
+  // ✅ Splash animation + unmount
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setFadeOut(true), 2500);
-    const removeTimer = setTimeout(() => setShowSplash(false), 3500);
+    const fadeTimer = setTimeout(() => setFadeOut(true), 2000); // start fade
+    const removeTimer = setTimeout(() => setShowSplash(false), 3000); // remove completely
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(removeTimer);
     };
   }, []);
 
+  // ✅ Show splash first
   if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
 
   return (
@@ -113,7 +114,7 @@ function App() {
                     }
                   />
 
-                  {/* --- ✅ Fallback route to prevent blank screen --- */}
+                  {/* --- Fallback --- */}
                   <Route path="*" element={<Home />} />
                 </Routes>
               </main>
