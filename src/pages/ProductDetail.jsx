@@ -1,3 +1,7 @@
+// Updated ProductDetail with the Buy Now button added
+
+import { purchaseProduct } from "../services/transactions";
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -86,6 +90,8 @@ const ProductDetail = () => {
   const { currentUser, userData } = useAuth();
   const { addToCart } = useCart();
   const navigate = useNavigate();
+
+  const [buying, setBuying] = useState(false);
 
   // ✅ Fetch product
   useEffect(() => {
@@ -196,53 +202,4 @@ const ProductDetail = () => {
             {/* --- Feedback / Buttons --- */}
             <div className="mt-6 space-y-3">
               {feedback && (
-                <div className="p-3 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  {feedback}
-                </div>
-              )}
-
-              {/* 🟢 Buyer (not seller) */}
-              {currentUser && userData?.role === 'Buyer' && userData.uid !== product.sellerId && (
-                <>
-                  <button
-                    onClick={handleAddToCart}
-                    className="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition duration-300"
-                  >
-                    Add to Cart
-                  </button>
-
-                  <button
-                    onClick={handleMessageSeller}
-                    className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
-                  >
-                    Message Seller
-                  </button>
-                </>
-              )}
-
-              {/* 🟣 Seller’s own product */}
-              {currentUser && userData?.uid === product.sellerId && (
-                <p className="text-center text-gray-500 dark:text-gray-400">
-                  This is one of your listings.{' '}
-                  <Link
-                    to="/dashboard"
-                    className="text-indigo-500 hover:underline dark:text-indigo-400"
-                  >
-                    Manage it here.
-                  </Link>
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* --- Customer Reviews --- */}
-      <div className="mt-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-5xl mx-auto">
-        <ProductReviews productId={productId} />
-      </div>
-    </>
-  );
-};
-
-export default ProductDetail;
+                <div className="p-3 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green
