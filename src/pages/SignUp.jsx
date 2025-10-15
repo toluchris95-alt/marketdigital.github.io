@@ -12,7 +12,7 @@ const SignUp = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Make sure navigate is initialized
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,13 +32,14 @@ const SignUp = () => {
         profilePictureUrl: '',
         walletBalance: 0,
       });
-      navigate('/');
+      navigate('/'); // <-- This line was missing
     } catch (err) {
       setError('Failed to create an account. The email may already be in use.');
     }
     setLoading(false);
   };
 
+  // ... the rest of your return JSX remains the same
   return (
     <div className="max-w-md mx-auto mt-10">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
