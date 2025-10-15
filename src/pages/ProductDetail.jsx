@@ -1,9 +1,6 @@
-// Updated ProductDetail with the Buy Now button added
-
 import { purchaseProduct } from "../services/transactions";
-
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   doc,
   getDoc,
@@ -14,12 +11,12 @@ import {
   addDoc,
   orderBy,
   serverTimestamp,
-} from 'firebase/firestore';
-import { db } from '../services/firebase';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
-import Spinner from '../components/Spinner';
-import { StarIcon } from '@heroicons/react/24/solid';
+} from "firebase/firestore";
+import { db } from "../services/firebase";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
+import Spinner from "../components/Spinner";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 /* ----------------------- ⭐ Reviews Component ----------------------- */
 const ProductReviews = ({ productId }) => {
@@ -30,14 +27,14 @@ const ProductReviews = ({ productId }) => {
     const fetchReviews = async () => {
       try {
         const q = query(
-          collection(db, 'reviews'),
-          where('productId', '==', productId),
-          orderBy('createdAt', 'desc')
+          collection(db, "reviews"),
+          where("productId", "==", productId),
+          orderBy("createdAt", "desc")
         );
         const querySnapshot = await getDocs(q);
         setReviews(querySnapshot.docs.map((doc) => doc.data()));
       } catch (err) {
-        console.error('Failed to load reviews:', err);
+        console.error("Failed to load reviews:", err);
       }
       setLoading(false);
     };
@@ -61,13 +58,18 @@ const ProductReviews = ({ productId }) => {
                   <StarIcon key={i} className="h-5 w-5 text-yellow-400" />
                 ))}
                 {[...Array(5 - review.rating)].map((_, i) => (
-                  <StarIcon key={i} className="h-5 w-5 text-gray-300 dark:text-gray-600" />
+                  <StarIcon
+                    key={i}
+                    className="h-5 w-5 text-gray-300 dark:text-gray-600"
+                  />
                 ))}
                 <p className="ml-2 font-semibold dark:text-gray-200">
-                  {review.buyerEmail.split('@')[0]}
+                  {review.buyerEmail.split("@")[0]}
                 </p>
               </div>
-              <p className="text-gray-600 dark:text-gray-300">{review.comment}</p>
+              <p className="text-gray-600 dark:text-gray-300">
+                {review.comment}
+              </p>
             </div>
           ))}
         </div>
@@ -85,8 +87,8 @@ const ProductDetail = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState("");
   const { currentUser, userData } = useAuth();
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -98,16 +100,16 @@ const ProductDetail = () => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const docRef = doc(db, 'products', productId);
+        const docRef = doc(db, "products", productId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProduct({ id: docSnap.id, ...docSnap.data() });
         } else {
-          setError('Product not found.');
+          setError("Product not found.");
         }
       } catch (err) {
-        console.error('Failed to fetch product:', err);
-        setError('Failed to fetch product data.');
+        console.error("Failed to fetch product:", err);
+        setError("Failed to fetch product data.");
       }
       setLoading(false);
     };
@@ -117,18 +119,18 @@ const ProductDetail = () => {
   // ✅ Add to cart
   const handleAddToCart = () => {
     if (!currentUser) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     addToCart(product);
     setFeedback(`${product.name} has been added to your cart!`);
-    setTimeout(() => setFeedback(''), 3000);
+    setTimeout(() => setFeedback(""), 3000);
   };
 
   // ✅ Start or open chat
   const handleMessageSeller = async () => {
     if (!currentUser) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -136,8 +138,8 @@ const ProductDetail = () => {
     const buyerId = currentUser.uid;
 
     try {
-      const conversationsRef = collection(db, 'conversations');
-      const q = query(conversationsRef, where('participants', 'array-contains', buyerId));
+      const conversationsRef = collection(db, "conversations");
+      const q = query(conversationsRef, where("participants", "array-contains", buyerId));
       const querySnapshot = await getDocs(q);
 
       let existingConvo = null;
@@ -154,16 +156,31 @@ const ProductDetail = () => {
           participants: [buyerId, sellerId],
           participantInfo: {
             [buyerId]: { email: currentUser.email },
-            [sellerId]: { email: product.sellerEmail || 'Seller' },
+            [sellerId]: { email: product.sellerEmail || "Seller" },
           },
-          lastMessage: '',
+          lastMessage: "",
           updatedAt: serverTimestamp(),
         });
         navigate(`/messages/${newConvoRef.id}`);
       }
     } catch (err) {
-      console.error('Failed to start conversation:', err);
-      setFeedback('Unable to start chat. Try again later.');
+      console.error("Failed to start conversation:", err);
+      setFeedback("Unable to start chat. Try again later.");
+    }
+  };
+
+  // ✅ Buy Now
+  const handleBuyNow = async () => {
+    if (!currentUser) return navigate("/login");
+    setBuying(true);
+    try {
+      await purchaseProduct({ buyerId: currentUser.uid, productId: product.id });
+      setFeedback("Purchase successful! 🎉 Your order has been created.");
+    } catch (e) {
+      console.error(e);
+      setFeedback(e.message || "Purchase failed.");
+    } finally {
+      setBuying(false);
     }
   };
 
@@ -202,4 +219,59 @@ const ProductDetail = () => {
             {/* --- Feedback / Buttons --- */}
             <div className="mt-6 space-y-3">
               {feedback && (
-                <div className="p-3 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green
+                <div className="p-3 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  {feedback}
+                </div>
+              )}
+
+              {currentUser && userData?.role === "Buyer" && userData.uid !== product.sellerId && (
+                <>
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition duration-300"
+                  >
+                    Add to Cart
+                  </button>
+
+                  <button
+                    onClick={handleBuyNow}
+                    disabled={buying}
+                    className="w-full bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-emerald-700 transition duration-300 disabled:opacity-60"
+                  >
+                    {buying ? "Processing…" : "Buy Now"}
+                  </button>
+
+                  <button
+                    onClick={handleMessageSeller}
+                    className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
+                  >
+                    Message Seller
+                  </button>
+                </>
+              )}
+
+              {currentUser && userData?.uid === product.sellerId && (
+                <p className="text-center text-gray-500 dark:text-gray-400">
+                  This is one of your listings.{" "}
+                  <Link
+                    to="/dashboard"
+                    className="text-indigo-500 hover:underline dark:text-indigo-400"
+                  >
+                    Manage it here.
+                  </Link>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- Customer Reviews --- */}
+      <div className="mt-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 max-w-5xl mx-auto">
+        <ProductReviews productId={productId} />
+      </div>
+    </>
+  );
+};
+
+export default ProductDetail;
