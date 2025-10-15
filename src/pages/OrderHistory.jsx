@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   collection,
   query,
@@ -39,13 +39,13 @@ const ReviewModal = ({ order, onClose }) => {
         createdAt: serverTimestamp(),
       };
 
-      // Add to Firestore
+      // Add review
       await addDoc(collection(db, 'reviews'), reviewData);
 
-      // Update order as reviewed
+      // Mark order as reviewed
       await updateDoc(doc(db, 'orders', order.id), { hasBeenReviewed: true });
 
-      console.log('✅ Review submitted! Product rating can be updated via Cloud Function.');
+      console.log('✅ Review submitted successfully!');
       onClose(true);
     } catch (error) {
       console.error('Failed to submit review:', error);
@@ -125,7 +125,8 @@ const OrderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const fetchOrders = async () => {
+  // ✅ useCallback keeps function stable between renders
+  const fetchOrders = useCallback(async () => {
     if (!currentUser) return;
     setLoading(true);
     try {
@@ -136,19 +137,19 @@ const OrderHistory = () => {
       );
       const querySnapshot = await getDocs(q);
       setOrders(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    } catch (err) {
-      console.error('Failed to fetch orders:', err);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
     }
     setLoading(false);
-  };
+  }, [currentUser]); // 👈 stable dependency list
 
   useEffect(() => {
     fetchOrders();
-  }, [currentUser]);
+  }, [fetchOrders]); // 👈 includes fetchOrders safely
 
   const handleModalClose = (didSubmit) => {
     setSelectedOrder(null);
-    if (didSubmit) fetchOrders(); // refresh list after review
+    if (didSubmit) fetchOrders();
   };
 
   if (loading) return <Spinner />;
