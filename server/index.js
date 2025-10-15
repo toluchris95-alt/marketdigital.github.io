@@ -1,17 +1,28 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import paymentRoutes from "./routes/payments.js";
+import paymentsRoutes from "./routes/payments.js";
+import transactionsRoutes from "./routes/transactions.js";
 
 dotenv.config();
+
 const app = express();
 
-app.use(cors());
-app.use(bodyParser.json());
+// NOTE: Paystack/Flutterwave webhooks need raw-body in some cases.
+// For regular JSON endpoints:
+app.use(express.json());
 
-app.get("/", (req, res) => res.send("Payment API is running..."));
-app.use("/api/payments", paymentRoutes);
+// CORS
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL?.split(",") ?? "*",
+    credentials: true
+  })
+);
+
+app.get("/", (_, res) => res.send("Digital Asset Marketplace API ✔️"));
+app.use("/api/payments", paymentsRoutes);
+app.use("/api/transactions", transactionsRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
