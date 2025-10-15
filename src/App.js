@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SplashScreen from "./components/SplashScreen";
@@ -21,11 +22,11 @@ import CartPage from "./pages/CartPage";
 import MessagesPage from "./pages/MessagesPage";
 import AdminKYCPanel from "./pages/AdminKYCPanel";
 
-// --- Fallback Error Boundary (simple runtime catcher) ---
+// --- Minimal inline Error Boundary ---
 function SafeBoundary({ children }) {
   const [error, setError] = useState(null);
 
-  if (error) {
+  if (error)
     return (
       <div className="bg-red-900 text-white p-6 text-center">
         <h2 className="text-xl font-bold mb-2">❌ Application Crash</h2>
@@ -35,7 +36,6 @@ function SafeBoundary({ children }) {
         </pre>
       </div>
     );
-  }
 
   try {
     return children;
@@ -59,18 +59,18 @@ export default function App() {
     };
   }, []);
 
-  // 🌀 Show splash screen first
+  // 🌀 Splash first
   if (showSplash) return <SplashScreen fadeOut={fadeOut} />;
 
-  // 🚀 Main app after splash
+  // 🚀 Main app
   return (
     <SafeBoundary>
       <React.StrictMode>
         <AuthProvider>
           <ThemeProvider>
             <CartProvider>
-              {/* ✅ basename ensures proper path on GitHub Pages */}
-              <HashRouter basename="/marketdigital.github.io">
+              {/* ✅ Uses BrowserRouter with PUBLIC_URL for GitHub Pages */}
+              <Router basename={process.env.PUBLIC_URL}>
                 <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
                   <Navbar />
                   <main className="container mx-auto px-4 py-8 flex-1 text-center">
@@ -81,7 +81,10 @@ export default function App() {
                       <Route path="/" element={<Home />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/login" element={<Login />} />
-                      <Route path="/product/:productId" element={<ProductDetail />} />
+                      <Route
+                        path="/product/:productId"
+                        element={<ProductDetail />}
+                      />
 
                       {/* --- Protected Routes --- */}
                       <Route
@@ -140,13 +143,12 @@ export default function App() {
                           </ProtectedRoute>
                         }
                       />
-
                       {/* --- Fallback --- */}
                       <Route path="*" element={<Home />} />
                     </Routes>
                   </main>
                 </div>
-              </HashRouter>
+              </Router>
             </CartProvider>
           </ThemeProvider>
         </AuthProvider>
