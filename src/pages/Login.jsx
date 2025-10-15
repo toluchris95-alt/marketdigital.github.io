@@ -8,7 +8,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Make sure navigate is initialized
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,13 +16,14 @@ const Login = () => {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/'); // <-- This line was missing
     } catch (err) {
       setError('Failed to log in. Please check your credentials.');
     }
     setLoading(false);
   };
 
+  // ... the rest of your return JSX remains the same
   return (
     <div className="max-w-md mx-auto mt-10">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
