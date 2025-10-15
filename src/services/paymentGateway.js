@@ -1,18 +1,11 @@
-// This is a placeholder. Replace with real gateway SDK / API calls
-export async function initializePayment({ uid, amount, currency }) {
-  // Call your backend API to create a payment session
-  // Return some payment reference / session ID
-  const session = await fetch("/api/createPayment", {
-    method: "POST",
-    body: JSON.stringify({ uid, amount, currency }),
-    headers: { "Content-Type": "application/json" },
-  }).then((r) => r.json());
-  return session.id; // or session object
-}
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
-export async function verifyPayment(sessionId) {
-  // Call your backend to verify payment status
-  const resp = await fetch(`/api/verifyPayment?sessionId=${sessionId}`);
-  const { success } = await resp.json();
-  return success;
+export async function initiateTopUp({ uid, amount, email, method }) {
+  const r = await fetch(`${BACKEND_URL}/api/payments/initiate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uid, amount, email, method })
+  });
+  if (!r.ok) throw new Error("Failed to initiate payment");
+  return r.json(); // { link, reference }
 }
