@@ -1,16 +1,11 @@
-// Updated ProfilePage with the initiateTopUp handleTopUp version integrated
-
-import React, { useState, useEffect } from "react";
+// src/pages/ProfilePage.jsx
+import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { storage, db } from "../services/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
 import Spinner from "../components/Spinner";
-
-// For payment gateway integration
 import { initiateTopUp } from "../services/paymentGateway";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 const ProfilePage = () => {
   const { currentUser, userData, updateUserProfile } = useAuth();
@@ -20,11 +15,10 @@ const ProfilePage = () => {
   const [photoFile, setPhotoFile] = useState(null);
 
   const [topUpAmount, setTopUpAmount] = useState("");
+  const [method, setMethod] = useState("paystack"); // paystack | flutterwave | crypto
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
-
-  // For real payments: store a transaction reference, etc.
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   if (!currentUser) {
@@ -38,10 +32,9 @@ const ProfilePage = () => {
       let photoURL = userData?.photoURL || "";
       if (photoFile) {
         const storageRef = ref(storage, `avatars/${currentUser.uid}/${photoFile.name}`);
-        const uploadRes = await uploadBytes(storageRef, photoFile);
+        await uploadBytes(storageRef, photoFile);
         photoURL = await getDownloadURL(storageRef);
       }
-      // Update both Firebase Auth profile (if needed) and userData
       await updateUserProfile({ displayName, country, photoURL });
       setMsg("Profile updated successfully.");
     } catch (e) {
@@ -64,10 +57,10 @@ const ProfilePage = () => {
         uid: currentUser.uid,
         amount: amountNum,
         email: currentUser.email,
-        method: "paystack" // or "flutterwave"
+        method
       });
       if (!link) throw new Error("Payment link not received");
-      window.location.href = link; // go to checkout
+      window.location.href = link;
     } catch (e) {
       console.error("Top-up error:", e);
       setErr("Payment failed: " + e.message);
@@ -141,22 +134,34 @@ const ProfilePage = () => {
         <p className="text-xl text-indigo-600 my-2">
           Balance: ${userData?.walletBalance?.toFixed(2) || "0.00"}
         </p>
-        <div className="flex gap-2 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
           <input
             type="number"
             placeholder="Amount"
-            className="p-2 border rounded-l dark:bg-gray-700 dark:border-gray-600"
+            className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
           />
+          <select
+            value={method}
+            onChange={(e) => setMethod(e.target.value)}
+            className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+          >
+            <option value="paystack">Paystack (NGN)</option>
+            <option value="flutterwave">Flutterwave</option>
+            <option value="crypto">Crypto (Coinbase)</option>
+          </select>
           <button
             onClick={handleTopUp}
             disabled={paymentLoading}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-r hover:bg-indigo-700 disabled:opacity-60"
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-60 md:col-span-2"
           >
             {paymentLoading ? "Processing..." : "Top Up"}
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Crypto uses Coinbase Commerce — we credit your wallet after on-chain confirmation.
+        </p>
       </div>
     </div>
   );
