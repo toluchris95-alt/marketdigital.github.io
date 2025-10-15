@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
@@ -25,9 +24,10 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
+  // ✅ Splash sequence (fade → remove)
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setFadeOut(true), 1500);
-    const removeTimer = setTimeout(() => setShowSplash(false), 2300);
+    const fadeTimer = setTimeout(() => setFadeOut(true), 2500);
+    const removeTimer = setTimeout(() => setShowSplash(false), 3500);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(removeTimer);
@@ -114,6 +114,9 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
+                  {/* ✅ Fallback to Home to prevent blank screen */}
+                  <Route path="*" element={<Home />} />
                 </Routes>
               </main>
             </div>
