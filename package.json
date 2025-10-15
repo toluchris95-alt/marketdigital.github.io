@@ -8,9 +8,11 @@
   "homepage": "https://toluchris95-alt.github.io/marketdigital.github.io/",
 
   "scripts": {
+    "prepare": "npm install react-scripts",
+    "heroku-postbuild": "npm install --only=dev && npm install react-scripts && npm run build",
     "postinstall": "npm install react-scripts",
+    "build": "npm install react-scripts && react-scripts build",
     "start": "node server.js",
-    "build": "react-scripts build",
     "dev": "react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -53,7 +55,7 @@
   },
 
   "engines": {
-    "node": "18.x",
-    "npm": "9.x"
+    "node": "20.x",
+    "npm": "10.x"
   }
 }
