@@ -2,12 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light Mode Defaults */
+/* 🌤️ Light Mode Defaults */
 body {
   @apply bg-gray-50 text-gray-800 transition-colors duration-300;
 }
 
-/* Dark Mode Overrides */
+/* 🌙 Dark Mode Overrides */
 .dark body {
   @apply bg-gray-900 text-gray-200;
+}
+
+/* ✨ Splash / Fade Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* (Optional) Fade-out animation for smoother splash removal */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 1s ease-in-out forwards;
 }
