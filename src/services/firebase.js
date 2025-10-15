@@ -1,5 +1,5 @@
 // src/services/firebase.js
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -11,80 +11,43 @@ import {
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-/**
- * 🔥 Firebase Configuration
- * (Uses your real project keys — safe for client-side)
- */
+// ✅ Secure environment-based Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyBV2GUGOfYBxjbAHjYaYwSyrCQP5ik0k0s",
-  authDomain: "digital-marketplace-4a9a6.firebaseapp.com",
-  projectId: "digital-marketplace-4a9a6",
-  storageBucket: "digital-marketplace-4a9a6.appspot.com",
-  messagingSenderId: "267883417599",
-  appId: "1:267883417599:web:f9bd92517a48dc1dcde1ca",
-  measurementId: "G-RR6Q1Q8L9B",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-/**
- * 🧩 Safe Initialization (prevents duplicate app errors on GH Pages)
- */
-let app;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  console.log("✅ Firebase initialized");
-} else {
-  app = getApp();
-  console.log("ℹ️ Using existing Firebase app instance");
-}
+// ✅ Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
-/**
- * 🔐 Auth Setup
- */
+// ✅ Auth setup
 export const auth = getAuth(app);
-try {
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => console.log("🔒 Auth persistence set to local"))
-    .catch((err) => console.warn("⚠️ Persistence warning:", err.message));
-} catch (err) {
-  console.warn("⚠️ Persistence not supported in this environment:", err.message);
-}
-
+setPersistence(auth, browserLocalPersistence);
 export const googleProvider = new GoogleAuthProvider();
 
-/**
- * 💾 Firestore + Storage
- */
+// ✅ Firestore & Storage
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-/**
- * 📱 Phone Auth Helper
- */
-let recaptchaVerifier = null;
-
+// ✅ Phone Auth helpers
+let recaptchaVerifier;
 export const getRecaptchaVerifier = (containerId = "recaptcha-container") => {
-  try {
-    if (!recaptchaVerifier) {
-      recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-        size: "invisible",
-      });
-      console.log("✅ RecaptchaVerifier initialized");
-    }
-    return recaptchaVerifier;
-  } catch (err) {
-    console.error("❌ RecaptchaVerifier error:", err);
-    return null;
+  if (!recaptchaVerifier) {
+    recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: "invisible",
+    });
   }
+  return recaptchaVerifier;
 };
 
 export const sendLoginCode = async (phoneNumber, containerId = "recaptcha-container") => {
-  try {
-    const verifier = getRecaptchaVerifier(containerId);
-    return await signInWithPhoneNumber(auth, phoneNumber, verifier);
-  } catch (err) {
-    console.error("❌ sendLoginCode error:", err);
-    throw err;
-  }
+  const verifier = getRecaptchaVerifier(containerId);
+  return await signInWithPhoneNumber(auth, phoneNumber, verifier);
 };
 
 export default app;
