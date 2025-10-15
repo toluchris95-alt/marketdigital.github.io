@@ -1,3 +1,5 @@
+// Updated ProfilePage with the initiateTopUp handleTopUp version integrated
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { storage, db } from "../services/firebase";
@@ -5,8 +7,10 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
 import Spinner from "../components/Spinner";
 
-// For payment gateway integration (placeholder imports — replace with your gateway SDK)
-import { initializePayment, verifyPayment } from "../services/paymentGateway";
+// For payment gateway integration
+import { initiateTopUp } from "../services/paymentGateway";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 const ProfilePage = () => {
   const { currentUser, userData, updateUserProfile } = useAuth();
@@ -54,32 +58,19 @@ const ProfilePage = () => {
       setErr("Enter a valid amount.");
       return;
     }
-
-    // **Real Wallet Flow**: initiate real payment via gateway
     setPaymentLoading(true);
     try {
-      const paymentRef = await initializePayment({
+      const { link } = await initiateTopUp({
         uid: currentUser.uid,
         amount: amountNum,
-        currency: userData?.currency || "USD", // or NGN
+        email: currentUser.email,
+        method: "paystack" // or "flutterwave"
       });
-      // Redirect or open payment UI depending on gateway
-
-      // After payment completes, you’ll have a callback / webhook or verify
-      const verified = await verifyPayment(paymentRef);
-      if (!verified) throw new Error("Payment not verified");
-
-      // Now update the user’s wallet balance in Firestore
-      const newBalance = (userData.walletBalance || 0) + amountNum;
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        walletBalance: newBalance,
-      });
-      // Also update local state via AuthContext (if supported)
-      setMsg("Wallet topped up successfully!");
-      setTopUpAmount("");
+      if (!link) throw new Error("Payment link not received");
+      window.location.href = link; // go to checkout
     } catch (e) {
       console.error("Top-up error:", e);
-      setErr("Payment failed: " + (e.message || ""));
+      setErr("Payment failed: " + e.message);
     }
     setPaymentLoading(false);
   };
