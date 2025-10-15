@@ -1,11 +1,9 @@
 // src/pages/ProfilePage.jsx
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { storage, db } from "../services/firebase";
+import { storage } from "../services/firebase"; // ✅ removed db
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { doc, updateDoc } from "firebase/firestore";
-import Spinner from "../components/Spinner";
-import { initiateTopUp } from "../services/paymentGateway";
+import { initiateTopUp } from "../services/paymentGateway"; // ✅ payment gateway
 
 const ProfilePage = () => {
   const { currentUser, userData, updateUserProfile } = useAuth();
@@ -26,12 +24,16 @@ const ProfilePage = () => {
   }
 
   const handleProfileSave = async () => {
-    setErr(""); setMsg("");
+    setErr("");
+    setMsg("");
     setLoading(true);
     try {
       let photoURL = userData?.photoURL || "";
       if (photoFile) {
-        const storageRef = ref(storage, `avatars/${currentUser.uid}/${photoFile.name}`);
+        const storageRef = ref(
+          storage,
+          `avatars/${currentUser.uid}/${photoFile.name}`
+        );
         await uploadBytes(storageRef, photoFile);
         photoURL = await getDownloadURL(storageRef);
       }
@@ -45,7 +47,8 @@ const ProfilePage = () => {
   };
 
   const handleTopUp = async () => {
-    setErr(""); setMsg("");
+    setErr("");
+    setMsg("");
     const amountNum = parseFloat(topUpAmount);
     if (isNaN(amountNum) || amountNum <= 0) {
       setErr("Enter a valid amount.");
@@ -57,7 +60,7 @@ const ProfilePage = () => {
         uid: currentUser.uid,
         amount: amountNum,
         email: currentUser.email,
-        method
+        method,
       });
       if (!link) throw new Error("Payment link not received");
       window.location.href = link;
@@ -89,9 +92,12 @@ const ProfilePage = () => {
             </div>
           )}
         </div>
+
         <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block font-medium dark:text-gray-200">Display Name</label>
+            <label className="block font-medium dark:text-gray-200">
+              Display Name
+            </label>
             <input
               type="text"
               className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
@@ -109,7 +115,9 @@ const ProfilePage = () => {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block font-medium dark:text-gray-200">Change Avatar</label>
+            <label className="block font-medium dark:text-gray-200">
+              Change Avatar
+            </label>
             <input
               type="file"
               accept="image/*"
@@ -160,7 +168,8 @@ const ProfilePage = () => {
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Crypto uses Coinbase Commerce — we credit your wallet after on-chain confirmation.
+          Crypto uses Coinbase Commerce — we credit your wallet after on-chain
+          confirmation.
         </p>
       </div>
     </div>
