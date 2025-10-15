@@ -7,6 +7,7 @@ import { CartProvider } from "./context/CartContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SplashScreen from "./components/SplashScreen";
+import ErrorBoundary from "./components/ErrorBoundary"; // ✅ Added
 
 // --- Pages ---
 import Home from "./pages/Home";
@@ -69,95 +70,101 @@ function App() {
   console.log("🚀 Rendering main app");
 
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <CartProvider>
-          <HashRouter>
-            <div className="min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
-              <Navbar />
-              <main className="container mx-auto px-4 py-8 flex-1 text-center">
-                <h2 className="text-white text-xl mb-4">🟢 React Router Active</h2>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <HashRouter>
+              <div className="min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
+                <Navbar />
+                <main className="container mx-auto px-4 py-8 flex-1 text-center">
+                  <h2 className="text-white text-xl mb-4">
+                    🟢 React Router Active
+                  </h2>
 
-                <Routes>
-                  {/* --- Public Routes --- */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/product/:productId" element={<ProductDetail />} />
+                  <Routes>
+                    {/* --- Public Routes --- */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route
+                      path="/product/:productId"
+                      element={<ProductDetail />}
+                    />
 
-                  {/* --- Protected Routes --- */}
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <ProfilePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/orders"
-                    element={
-                      <ProtectedRoute>
-                        <OrderHistory />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/cart"
-                    element={
-                      <ProtectedRoute roles={["Buyer"]}>
-                        <CartPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute roles={["Seller"]}>
-                        <SellerDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
+                    {/* --- Protected Routes --- */}
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <ProfilePage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/orders"
+                      element={
+                        <ProtectedRoute>
+                          <OrderHistory />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/cart"
+                      element={
+                        <ProtectedRoute roles={["Buyer"]}>
+                          <CartPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute roles={["Seller"]}>
+                          <SellerDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* --- Messages --- */}
-                  <Route
-                    path="/messages"
-                    element={
-                      <ProtectedRoute>
-                        <MessagesPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/messages/:conversationId"
-                    element={
-                      <ProtectedRoute>
-                        <MessagesPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    {/* --- Messages --- */}
+                    <Route
+                      path="/messages"
+                      element={
+                        <ProtectedRoute>
+                          <MessagesPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/messages/:conversationId"
+                      element={
+                        <ProtectedRoute>
+                          <MessagesPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* --- Admin --- */}
-                  <Route
-                    path="/admin/kyc"
-                    element={
-                      <ProtectedRoute roles={["Admin"]}>
-                        <AdminKYCPanel />
-                      </ProtectedRoute>
-                    }
-                  />
+                    {/* --- Admin --- */}
+                    <Route
+                      path="/admin/kyc"
+                      element={
+                        <ProtectedRoute roles={["Admin"]}>
+                          <AdminKYCPanel />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* --- Fallback --- */}
-                  <Route path="*" element={<Home />} />
-                </Routes>
-              </main>
-            </div>
-          </HashRouter>
-        </CartProvider>
-      </ThemeProvider>
-    </AuthProvider>
+                    {/* --- Fallback --- */}
+                    <Route path="*" element={<Home />} />
+                  </Routes>
+                </main>
+              </div>
+            </HashRouter>
+          </CartProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
 export default App;
-
