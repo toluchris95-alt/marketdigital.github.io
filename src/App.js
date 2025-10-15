@@ -25,10 +25,9 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // 🌀 Splash logic with debug logs
+  // 🌀 Splash logic
   useEffect(() => {
     console.log("✅ Splash mounted");
-
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
       console.log("➡️ Splash fading out");
@@ -76,10 +75,13 @@ function App() {
         <ThemeProvider>
           <CartProvider>
             <HashRouter>
-              <div className="min-h-screen flex flex-col bg-gray-900 text-gray-100 transition-colors duration-300">
+              {/* ✅ Fix applied here */}
+              <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
                 <Navbar />
+
                 <main className="container mx-auto px-4 py-8 flex-1 text-center">
-                  <h2 className="text-white text-xl mb-4">
+                  {/* Optional debug line */}
+                  <h2 className="text-xl mb-4">
                     🟢 React Router Active
                   </h2>
 
@@ -169,4 +171,3 @@ function App() {
 }
 
 export default App;
-
