@@ -1,9 +1,13 @@
+// src/App.js
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+
+// --- Context Providers ---
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
 
+// --- Components ---
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -16,7 +20,10 @@ import SellerDashboard from './pages/SellerDashboard';
 import OrderHistory from './pages/OrderHistory';
 import ProfilePage from './pages/ProfilePage';
 import CartPage from './pages/CartPage';
-import MessagesPage from './pages/MessagesPage'; // ✅ New import
+import MessagesPage from './pages/MessagesPage';
+import AdminKYCPanel from './pages/AdminKYCPanel'; // ✅ NEW import (Admin panel)
+
+// -----------------------------------------------------
 
 function App() {
   return (
@@ -25,16 +32,20 @@ function App() {
         <CartProvider>
           <Router>
             <div className="dark:bg-gray-900 min-h-screen flex flex-col">
+              {/* --- Navbar --- */}
               <Navbar />
+
+              {/* --- Main content area --- */}
               <main className="container mx-auto px-4 py-8 flex-1">
                 <Routes>
-                  {/* --- Public Routes --- */}
+
+                  {/* ---------- PUBLIC ROUTES ---------- */}
                   <Route path="/" element={<Home />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/product/:productId" element={<ProductDetail />} />
 
-                  {/* --- Protected Routes --- */}
+                  {/* ---------- PROTECTED ROUTES ---------- */}
                   <Route
                     path="/profile"
                     element={
@@ -43,6 +54,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
                   <Route
                     path="/orders"
                     element={
@@ -51,6 +63,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
                   <Route
                     path="/cart"
                     element={
@@ -59,6 +72,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
                   <Route
                     path="/dashboard"
                     element={
@@ -68,7 +82,7 @@ function App() {
                     }
                   />
 
-                  {/* --- Messaging Routes --- */}
+                  {/* ---------- MESSAGES ROUTES ---------- */}
                   <Route
                     path="/messages"
                     element={
@@ -85,6 +99,17 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
+                  {/* ---------- ADMIN ROUTES ---------- */}
+                  <Route
+                    path="/admin/kyc"
+                    element={
+                      <ProtectedRoute roles={['Admin']}>
+                        <AdminKYCPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+
                 </Routes>
               </main>
             </div>
