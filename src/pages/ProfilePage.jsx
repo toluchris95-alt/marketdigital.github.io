@@ -1,81 +1,174 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { db } from '../services/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { storage, db } from "../services/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, updateDoc } from "firebase/firestore";
+import Spinner from "../components/Spinner";
+
+// For payment gateway integration (placeholder imports — replace with your gateway SDK)
+import { initializePayment, verifyPayment } from "../services/paymentGateway";
 
 const ProfilePage = () => {
-    const { currentUser, userData, auth } = useAuth();
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [topUpAmount, setTopUpAmount] = useState('');
-    const [profilePicUrl, setProfilePicUrl] = useState(userData?.profilePictureUrl || '');
+  const { currentUser, userData, updateUserProfile } = useAuth();
 
-    const handleUpdateProfilePic = async (e) => {
-        e.preventDefault();
-        setLoading(true); setMessage(''); setError('');
-        try {
-            await updateDoc(doc(db, 'users', currentUser.uid), { profilePictureUrl: profilePicUrl });
-            setMessage('Profile picture updated!');
-        } catch (err) { setError('Failed to update profile picture.'); }
-        setLoading(false);
-    };
+  const [displayName, setDisplayName] = useState(userData?.displayName || "");
+  const [country, setCountry] = useState(userData?.country || "");
+  const [photoFile, setPhotoFile] = useState(null);
 
-    const handlePasswordReset = async () => {
-        setMessage(''); setError('');
-        try {
-            await sendPasswordResetEmail(auth, currentUser.email);
-            setMessage('Password reset email sent!');
-        } catch (err) { setError('Failed to send password reset email.'); }
-    };
-    
-    const handleTopUp = async (e) => {
-        e.preventDefault();
-        const amount = parseFloat(topUpAmount);
-        if (isNaN(amount) || amount <= 0) { setError('Please enter a valid amount.'); return; }
-        setLoading(true); setMessage(''); setError('');
-        try {
-            const newBalance = (userData.walletBalance || 0) + amount;
-            await updateDoc(doc(db, 'users', currentUser.uid), { walletBalance: newBalance });
-            setMessage(`$${amount.toFixed(2)} added to your wallet! Refresh to see new balance.`);
-            setTopUpAmount('');
-        } catch (error) { setError('Failed to top up wallet.'); }
-        setLoading(false);
-    };
+  const [topUpAmount, setTopUpAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
-    return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <h1 className="text-3xl font-bold">My Profile & Wallet</h1>
-            {message && <div className="p-3 bg-green-100 text-green-800 rounded">{message}</div>}
-            {error && <div className="p-3 bg-red-100 text-red-700 rounded">{error}</div>}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold mb-4">Profile Information</h2>
-                    <p><strong>Email:</strong> {currentUser?.email}</p>
-                    <p><strong>Role:</strong> {userData?.role}</p>
-                    <p><strong>Country:</strong> {userData?.country}</p>
-                    <form onSubmit={handleUpdateProfilePic} className="mt-4 space-y-2">
-                        <label className="block text-sm font-medium">Profile Picture URL</label>
-                        <input type="text" value={profilePicUrl} onChange={(e) => setProfilePicUrl(e.target.value)} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" />
-                        <button type="submit" disabled={loading} className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700">Update Picture</button>
-                    </form>
-                    <button onClick={handlePasswordReset} className="mt-4 w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 p-2 rounded-md">Send Password Reset Email</button>
-                </div>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h2 className="text-2xl font-semibold">My Wallet</h2>
-                    <p className="text-4xl font-bold text-indigo-600 my-2">${userData?.walletBalance?.toFixed(2) || '0.00'}</p>
-                    <form onSubmit={handleTopUp} className="mt-4">
-                        <label className="block font-medium">Top Up Wallet (Simulated)</label>
-                        <div className="flex items-center mt-2">
-                            <input type="number" value={topUpAmount} onChange={(e) => setTopUpAmount(e.target.value)} placeholder="Amount" className="w-full px-3 py-2 border rounded-l-lg dark:bg-gray-700 dark:border-gray-600" />
-                            <button type="submit" disabled={loading} className="bg-indigo-600 text-white px-4 py-2 rounded-r-lg hover:bg-indigo-700">Add Funds</button>
-                        </div>
-                    </form>
-                </div>
+  // For real payments: store a transaction reference, etc.
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
+  if (!currentUser) {
+    return <p>Please log in to view your profile.</p>;
+  }
+
+  const handleProfileSave = async () => {
+    setErr(""); setMsg("");
+    setLoading(true);
+    try {
+      let photoURL = userData?.photoURL || "";
+      if (photoFile) {
+        const storageRef = ref(storage, `avatars/${currentUser.uid}/${photoFile.name}`);
+        const uploadRes = await uploadBytes(storageRef, photoFile);
+        photoURL = await getDownloadURL(storageRef);
+      }
+      // Update both Firebase Auth profile (if needed) and userData
+      await updateUserProfile({ displayName, country, photoURL });
+      setMsg("Profile updated successfully.");
+    } catch (e) {
+      console.error(e);
+      setErr("Failed to update profile. " + (e.message || ""));
+    }
+    setLoading(false);
+  };
+
+  const handleTopUp = async () => {
+    setErr(""); setMsg("");
+    const amountNum = parseFloat(topUpAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setErr("Enter a valid amount.");
+      return;
+    }
+
+    // **Real Wallet Flow**: initiate real payment via gateway
+    setPaymentLoading(true);
+    try {
+      const paymentRef = await initializePayment({
+        uid: currentUser.uid,
+        amount: amountNum,
+        currency: userData?.currency || "USD", // or NGN
+      });
+      // Redirect or open payment UI depending on gateway
+
+      // After payment completes, you’ll have a callback / webhook or verify
+      const verified = await verifyPayment(paymentRef);
+      if (!verified) throw new Error("Payment not verified");
+
+      // Now update the user’s wallet balance in Firestore
+      const newBalance = (userData.walletBalance || 0) + amountNum;
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        walletBalance: newBalance,
+      });
+      // Also update local state via AuthContext (if supported)
+      setMsg("Wallet topped up successfully!");
+      setTopUpAmount("");
+    } catch (e) {
+      console.error("Top-up error:", e);
+      setErr("Payment failed: " + (e.message || ""));
+    }
+    setPaymentLoading(false);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg space-y-6">
+      <h1 className="text-3xl font-bold dark:text-white">My Profile</h1>
+
+      {err && <div className="p-3 bg-red-100 text-red-700 rounded">{err}</div>}
+      {msg && <div className="p-3 bg-green-100 text-green-700 rounded">{msg}</div>}
+
+      <div className="flex items-start gap-6">
+        <div className="flex-shrink-0">
+          {userData?.photoURL ? (
+            <img
+              src={userData.photoURL}
+              alt="Avatar"
+              className="h-24 w-24 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-24 w-24 rounded-full bg-indigo-500 flex items-center justify-center text-white text-3xl font-bold">
+              {(displayName?.[0] || currentUser.email?.[0] || "U").toUpperCase()}
             </div>
+          )}
         </div>
-    );
+        <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-medium dark:text-gray-200">Display Name</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block font-medium dark:text-gray-200">Country</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block font-medium dark:text-gray-200">Change Avatar</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={handleProfileSave}
+        disabled={loading}
+        className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-60"
+      >
+        {loading ? "Saving..." : "Save Profile"}
+      </button>
+
+      <hr className="my-6 border-gray-300 dark:border-gray-700" />
+
+      <div>
+        <h2 className="text-2xl font-semibold dark:text-white">Wallet / Top-up</h2>
+        <p className="text-xl text-indigo-600 my-2">
+          Balance: ${userData?.walletBalance?.toFixed(2) || "0.00"}
+        </p>
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            placeholder="Amount"
+            className="p-2 border rounded-l dark:bg-gray-700 dark:border-gray-600"
+            value={topUpAmount}
+            onChange={(e) => setTopUpAmount(e.target.value)}
+          />
+          <button
+            onClick={handleTopUp}
+            disabled={paymentLoading}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-r hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {paymentLoading ? "Processing..." : "Top Up"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ProfilePage;
